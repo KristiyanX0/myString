@@ -45,67 +45,44 @@ char& myString::operator[](size_t t) {
 }
 
 myString& myString::operator+=(const myString& other) {
-	size_t length = strlen(text);
-	char* text_copy = new char[length + 1];
-	strcpy(text_copy, text);
-	delete[] text;
-	text_copy[length] = '\0';
-	size_t other_len = length + strlen(other.text);
-	text = new char[other_len + 1];
-	strcpy(text, text_copy);
-	strcat(text, other.text);
-	text[other_len] = '\0';
-	delete[] text_copy;
+	size_t oldlength = strlen(text);
+	size_t newLength = strlen(text) + strlen(other.text);
+	resize(newLength + 1);
+	for (size_t i = oldlength; i < newLength; ++i)
+		this->text[i] = other.text[i - oldlength];
+	text[newLength] = '\0';
 	return *this;
 }
 
 myString& myString::operator+=(const char other) {
-	size_t length = strlen(text);
-	char* text_copy = new char[length + 1];
-	strcpy(text_copy, text);
-	text_copy[length] = '\0';
-	delete[] text;
-	text = new char[length + 2];
-	strcpy(text, text_copy);
-	text[length] = other;
-	text[length + 1] = '\0';
-	delete[] text_copy;
+	size_t newLength = strlen(text) + 1;
+	resize(newLength + 1);
+	text[newLength - 1] = other;
+	text[newLength] = '\0';
 	return *this;
 }
 
 myString& myString::operator*=(size_t scalar) {
 	if (scalar > 0) {
-		size_t j = strlen(text);
-		char* copy_text = new char[j + 1];
-		strcpy(copy_text, text);
-		copy_text[j] = '\0';
-		delete[] text;
-		text = new char[scalar*j + 1];
-		strcpy(text, copy_text);
-		for (size_t i = 0; i < scalar - 1; i++)
-			strcat(text, copy_text);
-		text[scalar * j] = '\0';
-		delete[] copy_text;
+		size_t oldlength = strlen(text);
+		size_t newLength = strlen(text)*scalar;
+		resize(newLength + 1);
+		for (size_t i = oldlength, j = 0; i < newLength; i++, j++)
+			text[i] = text[j];
+		text[newLength] = '\0';
 	}
 	return *this;
 }
 
 std::ostream& operator<<(std::ostream& os, const myString& v) {
-	int n = strlen(v.text);
-	for (size_t i = 0; i < n; i++)
-		os << v.text[i];
+	os << v.text;
 	return os;
 }
 
 std::istream& operator>>(std::istream& is, myString& str) {
-	char* copy = new char[256];
-	std::cin.getline(copy, 256);
-	delete[] str.text;
-	size_t t = strlen(copy);
-	str.text = new char[t + 1];
-	strcpy(str.text, copy);
-	str.text[t] = '\0';
-	delete[] copy;
+	char* ptr = new char[128];
+	is >> ptr;
+	str = myString(ptr);
 	return is;
 }
 
@@ -169,9 +146,19 @@ myString myString::substr(size_t position1, size_t position2) const {
 }
 
 const size_t myString::size() const {
+	if (text == nullptr)
+		return 0;
 	return strlen(text);
 }
 
 const char* myString::return_char_ptr() const {
 	return text;
+}
+
+void myString::resize(const size_t addlength) {
+	char* temp = new char[addlength];
+	for (size_t i = 0; i < size(); ++i)
+		temp[i] = text[i];
+	free();
+	text = temp;
 }

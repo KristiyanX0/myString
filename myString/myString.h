@@ -10,6 +10,7 @@ private:
 	char* text;
 	void free();
 	void copy_from(const myString&);
+	void resize(const size_t);
 public:
 	myString();
 	myString(const char*);
